@@ -1,12 +1,16 @@
 SuperStrict
 
 Type TScreen
+	Private
+	
 	Field width:Int
 	Field height:Int
 	Field posX:Int
 	Field posY:Int
-	Field scale:Float
+	Field scale:Int
 
+	Public
+	
 	Method Init(width:Int, height:Int)
 		Graphics DesktopWidth(), DesktopHeight(), DesktopDepth(), DesktopHertz()	
 		AutoImageFlags MASKEDIMAGE
@@ -18,7 +22,8 @@ Type TScreen
 		SetViewport(posX, posY, Int(width * scale), Int(height * scale))
 	EndMethod
 	
-	Method Clear()	
+	Method Clear()
+		Cls
 		SetScale(scale, scale)
 		SetColor(30, 30, 30)
 		DrawRect(posX, posY, width, height)
@@ -32,6 +37,14 @@ Type TScreen
 	Method GetScale:Float()
 		Return scale
 	EndMethod	
+	
+	Method GetPosX:Int()
+		Return posX
+	EndMethod
+	
+	Method GetPosY:Int()
+		Return posY
+	EndMethod
 	
 	Method GetWidth:Int()
 		Return width

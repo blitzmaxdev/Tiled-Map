@@ -1,6 +1,6 @@
-<h1> Tiled Loader </h1>
+<h1> simple Tiled support </h1>
 <p>
-Adding Tiled-Maps support to BlitzMAX NG.
+adding Tiled maps support to BlitzMAX NG.
 </p>
 
 <p>
