@@ -12,18 +12,20 @@ Type TTileLayer
 EndType
 
 Type TTileset
+	' tileset image
 	Field image:TImage
+	
+	' tile size
 	Field width:Int
 	Field height:Int
+	
+	' positions of each tile in the tileset
 	Field positions:Int[]
 EndType
 
 Type TTiledMap	
 	Field tileset:TTileset
-	
-	' tileset image
-	Field tilesImg:TImage
-	
+
 	' current directory where the *.TMX file was loaded from
 	Field directory:String
 	
@@ -34,10 +36,7 @@ Type TTiledMap
 	' tile layer data
 	Field tileLayer:Int[]
 	Field layerList:TList
-	
-	' positions of each tile in the tileset
-	Field tileSources:Int[]
-	
+		
 	' XML root node
 	Field rootNode:TxmlNode
 	
