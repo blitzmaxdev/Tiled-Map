@@ -23,5 +23,6 @@ how to use:<br>
 </p>
 
 <p>
-Get BlitzMAX NG <a href="https://blitzmax.org/">here</a>
+Get BlitzMAX NG <a href="https://blitzmax.org/">here</a> <br>
+Get Tiled Map-Editor <a href="https://www.mapeditor.org/">here</a><br>
 </p>
