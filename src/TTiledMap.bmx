@@ -66,11 +66,11 @@ Type TTiledMap
 		EndIf	
 	EndMethod
 	
-	Method FindTileLayerByName:TTileLayer(layerName:String)
+	Method FindTileLayerByName:TTileLayer(name:String)
 		local retLayer:TTileLayer = Null
 
 		For Local layer:TTileLayer = EachIn layerList
-			If layer.name = layerName Then
+			If layer.name = name Then
 				retLayer = layer
 				Exit
 			EndIf
@@ -82,27 +82,27 @@ Type TTiledMap
 	Method GetTileDataByLayerName(layerName:String)
 		If tmxFile And rootNode Then
 			local tl:TTileLayer = new TTileLayer
-			layerList.AddLast(tl)
 
 			' get map size
 			tl.width = rootNode.GetAttribute("width").ToInt()
 			tl.height = rootNode.GetAttribute("height").ToInt()
 
 			Local layerNode:TxmlNode = rootNode.findElement("layer")
-			tl.name = layerNode.GetAttribute("name")
-
 			If layerNode Then			
 				While(layerNode.getAttribute("name") <> layerName)
 					layerNode = layerNode.nextSibling()
 				Wend
 
 				If layerNode.getAttribute("name") = layerName Then
+					tl.name = layerNode.GetAttribute("name")
 					Local csv:TxmlNode = layerNode.findElement("data")
 					
 					If csv.GetAttribute("encoding") = "csv" Then
 						GetCsvDataFromNode(csv, tl)
 					EndIf
 				EndIf
+
+				layerList.AddLast(tl)
 			EndIf	
 		EndIf
 	EndMethod
@@ -172,25 +172,29 @@ Type TTiledMap
 		Next		
 	EndMethod
 	
-	Method DrawTileLayer(screen:TScreen, tileLayer:TTileLayer)
+	Method DrawTileLayer(screen:TScreen, layerName:String)
 		Local scale:Int = screen.GetScale()
 		
-		For Local y:Int = 0 To screen.GetHeight() / tileset.height - 1
-			For Local x:Int = 0 To screen.GetWidth() / tileset.width - 1
-				Local tileId:Int = tileLayer.data[x + (y * tileLayer.width)]
-				
-				If tileId > 0 Then
-					Local sourceX:Int = tileset.positions[(tileId - 1) * 2]
-					Local sourceY:Int = tileset.positions[(tileId - 1) * 2 + 1]
+		'local layer:TTileLayer = TTilelayer(layerList.First()) 'FindTileLayerByName(layerName)
+		local layer:TTileLayer = FindTileLayerByName(layerName)
+		If layer Then
+			For Local y:Int = 0 To screen.GetHeight() / tileset.height - 1
+				For Local x:Int = 0 To screen.GetWidth() / tileset.width - 1
+					Local tileId:Int = layer.data[x + (y * layer.width)]
 					
-					DrawSubImageRect(tileset.image,
-									screen.GetPosX() + (x * tileset.width * scale),
-									screen.GetPosY() + (y * tileset.height * scale),
-									tileset.width, tileset.height,
-									sourceX, sourceY, tileset.width, tileset.height)
-				EndIf
+					If tileId > 0 Then
+						Local sourceX:Int = tileset.positions[(tileId - 1) * 2]
+						Local sourceY:Int = tileset.positions[(tileId - 1) * 2 + 1]
+						
+						DrawSubImageRect(tileset.image,
+										screen.GetPosX() + (x * tileset.width * scale),
+										screen.GetPosY() + (y * tileset.height * scale),
+										tileset.width, tileset.height,
+										sourceX, sourceY, tileset.width, tileset.height)
+					EndIf
+				Next
 			Next
-		Next
+		EndIf
 	EndMethod
 		
 	Function Create:TTiledMap()

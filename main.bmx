@@ -15,11 +15,15 @@ tiledMap = TTiledMap.Create()
 
 ' load tiled file
 tiledMap.LoadTMX("data/levelmap.tmx")
+tiledMap.GetTileDataByLayerName("items")
 tiledMap.GetTileDataByLayerName("background")
-				
+tiledMap.GetTileDataByLayerName("bonus")
+
 Repeat
 	screen.Clear()
-	'tiledMap.DrawTileLayer(screen, tiledMap.layerList)
+	tiledMap.DrawTileLayer(screen, "background")
+	tiledMap.DrawTileLayer(screen, "items")
+	tiledMap.DrawTileLayer(screen, "bonus")
 	Flip
 Until KeyDown(KEY_ESCAPE)
 End
