@@ -4,10 +4,17 @@ Import Text.xml
 Import "TScreen.bmx"
 
 Type TTileLayer
+	' layer size
 	Field width:Int
 	Field height:Int
+
+	' layer id
 	Field id:Int
+
+	' layer name
 	Field name:String
+
+	' tile data
 	Field data:Int[]
 EndType
 
@@ -23,15 +30,16 @@ Type TTileset
 	Field positions:Int[]
 EndType
 
-Type TTiledMap	
+Type TTiledMap
+	' map position in pixel
+	field x:float
+	field y:float
+
+	' tileset
 	Field tileset:TTileset
 
 	' current directory where the *.TMX file was loaded from
 	Field directory:String
-	
-	' map size
-	Field width:Int	
-	Field height:Int
 	
 	' tile layer data
 	Field tileLayer:Int[]
@@ -49,6 +57,19 @@ Type TTiledMap
 		tmxFile = null
 	EndMethod
 	
+	Method SetPosition(x:float, y:float)
+		self.x = x
+		self.y = y
+	EndMethod
+
+	Method GetX:float()
+		return x
+	EndMethod
+
+	Method GetY:float()
+		return y 
+	EndMethod
+
 	' load tiled TMX-File and also load the defined TSX-tileset and tileset image file
 	Method LoadTMX(filename:String)
 		directory:String = ExtractDir(filename)
@@ -66,19 +87,6 @@ Type TTiledMap
 		EndIf	
 	EndMethod
 	
-	Method FindTileLayerByName:TTileLayer(name:String)
-		local retLayer:TTileLayer = Null
-
-		For Local layer:TTileLayer = EachIn layerList
-			If layer.name = name Then
-				retLayer = layer
-				Exit
-			EndIf
-		Next
-
-		return retLayer
-	EndMethod
-
 	Method GetTileDataByLayerName(layerName:String)
 		If tmxFile And rootNode Then
 			local tl:TTileLayer = new TTileLayer
@@ -104,6 +112,38 @@ Type TTiledMap
 
 				layerList.AddLast(tl)
 			EndIf	
+		EndIf
+	EndMethod
+
+	Method DrawTileLayer(screen:TScreen, layerName:String)
+		Local scale:Int = screen.GetScale()
+		
+		local startX:Int = Int(x / tileset.width)
+		local startY:Int = Int(y / tileset.height)
+
+		local softScrollX:int = int((x Mod tileset.width) * scale)
+		local softScrollY:int= int((y Mod tileset.height) * scale)
+
+		'local layer:TTileLayer = TTilelayer(layerList.First()) 'FindTileLayerByName(layerName)
+		local layer:TTileLayer = FindTileLayerByName(layerName)
+		If layer Then
+			For Local y:Int = 0 To screen.GetHeight() / tileset.height
+				For Local x:Int = 0 To screen.GetWidth() / tileset.width
+					Local tileId:Int = layer.data[ (startX + x) + ( (y + startY) * layer.width)]
+					
+					If tileId > 0 Then
+						Local sourceX:Int = tileset.positions[(tileId - 1) * 2]
+						Local sourceY:Int = tileset.positions[(tileId - 1) * 2 + 1]
+						
+						local destX:int = screen.GetPosX() + (x * tileset.width * scale) - softScrollX
+						local destY:int = screen.GetPosY() + (y * tileset.height * scale) - softScrollY
+
+						DrawSubImageRect(tileset.image, destX, destY,
+										tileset.width, tileset.height,
+										sourceX, sourceY, tileset.width, tileset.height)
+					EndIf
+				Next
+			Next
 		EndIf
 	EndMethod
 
@@ -156,6 +196,19 @@ Type TTiledMap
 		EndIf
 	EndMethod	
 	
+	Method FindTileLayerByName:TTileLayer(name:String)
+		local retLayer:TTileLayer = Null
+
+		For Local layer:TTileLayer = EachIn layerList
+			If layer.name = name Then
+				retLayer = layer
+				Exit
+			EndIf
+		Next
+
+		return retLayer
+	EndMethod
+
 	' calculate position of each tile in the tileset
 	Method CalculateTileSources(width:Int, height:Int)
 		If width > 0 Then width = width / tileset.width
@@ -171,32 +224,7 @@ Type TTiledMap
 			Next
 		Next		
 	EndMethod
-	
-	Method DrawTileLayer(screen:TScreen, layerName:String)
-		Local scale:Int = screen.GetScale()
-		
-		'local layer:TTileLayer = TTilelayer(layerList.First()) 'FindTileLayerByName(layerName)
-		local layer:TTileLayer = FindTileLayerByName(layerName)
-		If layer Then
-			For Local y:Int = 0 To screen.GetHeight() / tileset.height - 1
-				For Local x:Int = 0 To screen.GetWidth() / tileset.width - 1
-					Local tileId:Int = layer.data[x + (y * layer.width)]
-					
-					If tileId > 0 Then
-						Local sourceX:Int = tileset.positions[(tileId - 1) * 2]
-						Local sourceY:Int = tileset.positions[(tileId - 1) * 2 + 1]
-						
-						DrawSubImageRect(tileset.image,
-										screen.GetPosX() + (x * tileset.width * scale),
-										screen.GetPosY() + (y * tileset.height * scale),
-										tileset.width, tileset.height,
-										sourceX, sourceY, tileset.width, tileset.height)
-					EndIf
-				Next
-			Next
-		EndIf
-	EndMethod
-		
+			
 	Function Create:TTiledMap()
 		Return New TTiledMap
 	EndFunction
