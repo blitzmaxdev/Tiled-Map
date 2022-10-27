@@ -1,8 +1,12 @@
-<h1> simple Tiled support </h1>
+<h1> simple Tiled loader </h1>
 <p>
-adding Tiled maps support to BlitzMAX NG.
+brings Tiled maps to your BlitzMAX NG projects.
 </p>
 
 <p>
 still under development.
+</p>
+
+<p>
+Get BlitzMAX NG <a href="https://blitzmax.org/">here</a>
 </p>

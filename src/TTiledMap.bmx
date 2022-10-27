@@ -40,28 +40,23 @@ Type TTiledMap
 	' XML root node
 	Field rootNode:TxmlNode
 	
+	' TMX Tiled file
+	field tmxFile:TxmlDoc
+
 	Method New()
 		layerList = New TList
 		tileset = New TTileset
+		tmxFile = null
 	EndMethod
 	
 	' load tiled TMX-File and also load the defined TSX-tileset and tileset image file
-	Method LoadMap(filename:String)
+	Method LoadTMX(filename:String)
 		directory:String = ExtractDir(filename)
-		Local mapXmlDoc:TxmlDoc = TxmlDoc.parseFile(filename)
+		tmxFile:TxmlDoc = TxmlDoc.parseFile(filename)
 		
-		If mapXmlDoc Then
-			rootNode = mapXmlDoc.getRootElement()		
-			
-			' get tile layer data
-			If rootNode Then
-				' get map size
-				width = rootNode.GetAttribute("width").ToInt()
-				height = rootNode.GetAttribute("height").ToInt()
+		If tmxFile Then
+			rootNode = tmxFile.getRootElement()		
 				
-				GetTileDataByLayerName("background")
-			EndIf
-			
 			' get tileset
 			Local node:TxmlNode = rootNode.findElement("tileset")
 			If node Then				
@@ -69,38 +64,59 @@ Type TTiledMap
 				ParseTsxFile(tilesetFilename)
 			EndIf
 		EndIf	
-	
-		mapXmlDoc.Free()
 	EndMethod
 	
-	Method GetTileDataByLayerName(layerName:String)
-		Local layerNode:TxmlNode = rootNode.findElement("layer")
-		
-		If layerNode Then			
-			While(layerNode.getAttribute("name") <> layerName)
-				layerNode = layerNode.nextSibling()
-			Wend
+	Method FindTileLayerByName:TTileLayer(layerName:String)
+		local retLayer:TTileLayer = Null
 
-			If layerNode.getAttribute("name") = layerName Then
-				Local csv:TxmlNode = layerNode.findElement("data")
-				
-				If csv.GetAttribute("encoding") = "csv" Then
-					GetCsvDataFromNode(csv)
-				EndIf
+		For Local layer:TTileLayer = EachIn layerList
+			If layer.name = layerName Then
+				retLayer = layer
+				Exit
 			EndIf
-		EndIf		
+		Next
+
+		return retLayer
 	EndMethod
 
-	Method GetCsvDataFromNode(node:TxmlNode)
+	Method GetTileDataByLayerName(layerName:String)
+		If tmxFile And rootNode Then
+			local tl:TTileLayer = new TTileLayer
+			layerList.AddLast(tl)
+
+			' get map size
+			tl.width = rootNode.GetAttribute("width").ToInt()
+			tl.height = rootNode.GetAttribute("height").ToInt()
+
+			Local layerNode:TxmlNode = rootNode.findElement("layer")
+			tl.name = layerNode.GetAttribute("name")
+
+			If layerNode Then			
+				While(layerNode.getAttribute("name") <> layerName)
+					layerNode = layerNode.nextSibling()
+				Wend
+
+				If layerNode.getAttribute("name") = layerName Then
+					Local csv:TxmlNode = layerNode.findElement("data")
+					
+					If csv.GetAttribute("encoding") = "csv" Then
+						GetCsvDataFromNode(csv, tl)
+					EndIf
+				EndIf
+			EndIf	
+		EndIf
+	EndMethod
+
+	Method GetCsvDataFromNode(node:TxmlNode, tileLayer:TTileLayer)
 		Local csvString:String = node.getContent()		
 		csvString = csvString.Replace(Chr(10), "")
 		csvString:+ ","
 		
-		tileLayer = New Int[width * height]
+		tileLayer.data = New Int[tileLayer.width * tileLayer.height]
 		
 		Local pos:Int = 1
-		For Local y:Int = 0 To height - 1
-			For Local x:Int = 0 To width - 1
+		For Local y:Int = 0 To tileLayer.height - 1
+			For Local x:Int = 0  To tileLayer.width - 1
 				Local val:String = ""
 				
 				While(csvString[pos] <> 44)
@@ -108,7 +124,7 @@ Type TTiledMap
 					pos:+1
 				Wend
 				
-				tileLayer[x + (y * width)] = val.ToInt()
+				tileLayer.data[x + (y * tileLayer.width)] = val.ToInt()
 				pos:+1
 			Next
 		Next
@@ -156,13 +172,12 @@ Type TTiledMap
 		Next		
 	EndMethod
 	
-	Method DrawTileLayer(screen:TScreen)
+	Method DrawTileLayer(screen:TScreen, tileLayer:TTileLayer)
 		Local scale:Int = screen.GetScale()
 		
 		For Local y:Int = 0 To screen.GetHeight() / tileset.height - 1
 			For Local x:Int = 0 To screen.GetWidth() / tileset.width - 1
-				
-				Local tileId:Int = tileLayer[x + (y * width)]
+				Local tileId:Int = tileLayer.data[x + (y * tileLayer.width)]
 				
 				If tileId > 0 Then
 					Local sourceX:Int = tileset.positions[(tileId - 1) * 2]
