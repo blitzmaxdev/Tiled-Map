@@ -168,11 +168,11 @@ Type TTiledMap
 					Local sourceX:Int = tileset.positions[(tileId - 1) * 2]
 					Local sourceY:Int = tileset.positions[(tileId - 1) * 2 + 1]
 					
-					DrawSubImageRect(tileset.image, ..
-									 screen.GetPosX() + (x * tileset.width * scale), ..
-									 screen.GetPosY() + (y * tileset.height * scale), ..
-									 tileset.width, tileset.height, ..
-									 sourceX, sourceY, tileset.width, tileset.height)
+					DrawSubImageRect(tileset.image,
+									screen.GetPosX() + (x * tileset.width * scale),
+									screen.GetPosY() + (y * tileset.height * scale),
+									tileset.width, tileset.height,
+									sourceX, sourceY, tileset.width, tileset.height)
 				EndIf
 			Next
 		Next
