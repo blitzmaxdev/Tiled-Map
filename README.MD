@@ -8,8 +8,9 @@ still under development.
 </p>
 
 <p>
-how to use:
- "TScreen" user defined type, represents the game screen.
+how to use:<br>
+ "TScreen" user defined type, represents the game screen.<br>
+ "TTiledMap" user defined type, represents the tilemap.<br>
 <ul>
 <li>call TScreen.Create(width:int, height:int) function to create an instance for a game screen</li>
 <li>call TTiledMap.Create() function to create an instance for a tilemap.</li>
