@@ -12,7 +12,7 @@ how to use:<br>
  "TScreen" user defined type, represents the game screen.<br>
  "TTiledMap" user defined type, represents the tilemap.<br>
 <ul>
-<li>call TScreen.Create(width:int, height:int) function to create an instance for a game screen</li>
+<li>call <code>TScreen.Create(width:int, height:int)</code> function to create an instance for a game screen</li>
 <li>call TTiledMap.Create() function to create an instance for a tilemap.</li>
 <li>use "loadTMX(filename:String)" method to load an Tiled-TMX file. There must also an *.TSX file in the same directory.</li>
 <li>call the "GetTileDataByLayerName(layerName:String)" method of the TTiledMap instance to get the CSV tilemap data from a specific tile layer.</li>
