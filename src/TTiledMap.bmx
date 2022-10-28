@@ -1,7 +1,7 @@
 SuperStrict
 
 Import Text.xml
-Import "TScreen.bmx"
+'Import "TScreen.bmx"
 
 Type TTileLayer
 	' layer size
@@ -31,9 +31,12 @@ Type TTileset
 EndType
 
 Type TTiledMap
+	Field canvas:TCanvas
+	Field image:TImage
+	
 	' map position in pixel
-	field x:float
-	field y:float
+	Field x:Float
+	Field y:Float
 
 	' tileset
 	Field tileset:TTileset
@@ -49,25 +52,32 @@ Type TTiledMap
 	Field rootNode:TxmlNode
 	
 	' TMX Tiled file
-	field tmxFile:TxmlDoc
+	Field tmxFile:TxmlDoc
 
-	Method New()
+	Field width:Int
+	Field height:Int
+	
+	Method Init(_width:Int, _height:Int)
 		layerList = New TList
 		tileset = New TTileset
-		tmxFile = null
+		tmxFile = Null
+		width = _width
+		height = _height
+		image = New TImage.Create(width+64, height+64, 0,0,0)
+		canvas = New TCanvas.CreateCanvas(image)
 	EndMethod
 	
-	Method SetPosition(x:float, y:float)
-		self.x = x
-		self.y = y
+	Method SetPosition(x:Float, y:Float)
+		Self.x = x
+		Self.y = y
 	EndMethod
 
-	Method GetX:float()
-		return x
+	Method GetX:Float()
+		Return x
 	EndMethod
 
-	Method GetY:float()
-		return y 
+	Method GetY:Float()
+		Return y 
 	EndMethod
 
 	' load tiled TMX-File and also load the defined TSX-tileset and tileset image file
@@ -89,12 +99,12 @@ Type TTiledMap
 	
 	Method GetTileDataByLayerName(layerName:String)
 		If tmxFile And rootNode Then
-			local tl:TTileLayer = new TTileLayer
+			Local tl:TTileLayer = New TTileLayer
 
 			' get map size
 			tl.width = rootNode.GetAttribute("width").ToInt()
 			tl.height = rootNode.GetAttribute("height").ToInt()
-
+			
 			Local layerNode:TxmlNode = rootNode.findElement("layer")
 			If layerNode Then			
 				While(layerNode.getAttribute("name") <> layerName)
@@ -115,38 +125,38 @@ Type TTiledMap
 		EndIf
 	EndMethod
 
-	Method DrawTileLayer(screen:TScreen, layerName:String)
-		Local scale:Int = screen.GetScale()
-		
-		local startX:Int = Int(x / tileset.width)
-		local startY:Int = Int(y / tileset.height)
+	Method ClearCanvas()
+		canvas.clear(0, 0, 0)
+	EndMethod
+	
+	Method DrawTileLayer(layerName:String)
+		Local startX:Int = Floor(x / tileset.width)
+		Local startY:Int = Floor(y / tileset.height)
 
-		local softScrollX:int = int((x Mod tileset.width) * scale)
-		local softScrollY:int= int((y Mod tileset.height) * scale)
+		Local softScrollX:Int = Floor(x Mod tileset.width)
+		Local softScrollY:Int= Floor(y Mod tileset.height)
 
-		'local layer:TTileLayer = TTilelayer(layerList.First()) 'FindTileLayerByName(layerName)
-		local layer:TTileLayer = FindTileLayerByName(layerName)
+		Local layer:TTileLayer = FindTileLayerByName(layerName)
+
 		If layer Then
-			For Local y:Int = 0 To screen.GetHeight() / tileset.height
-				For Local x:Int = 0 To screen.GetWidth() / tileset.width
+			For Local y:Int = 0 To height / tileset.height
+				For Local x:Int = 0 To width / tileset.width
 					Local tileId:Int = layer.data[ (startX + x) + ( (y + startY) * layer.width)]
 					
 					If tileId > 0 Then
 						Local sourceX:Int = tileset.positions[(tileId - 1) * 2]
 						Local sourceY:Int = tileset.positions[(tileId - 1) * 2 + 1]
 						
-						local destX:int = screen.GetPosX() + (x * tileset.width * scale) - softScrollX
-						local destY:int = screen.GetPosY() + (y * tileset.height * scale) - softScrollY
+						Local destX:Int = (x * tileset.width) - softScrollX
+						Local destY:Int = (y * tileset.height) - softScrollY
 
-						DrawSubImageRect(tileset.image, destX, destY,
-										tileset.width, tileset.height,
-										sourceX, sourceY, tileset.width, tileset.height)
+						canvas.DrawRectImageSource(destX, destY, tileset.image, sourceX, sourceY, tileset.width, tileset.height)
 					EndIf
 				Next
 			Next
 		EndIf
 	EndMethod
-
+	
 	Method GetCsvDataFromNode(node:TxmlNode, tileLayer:TTileLayer)
 		Local csvString:String = node.getContent()		
 		csvString = csvString.Replace(Chr(10), "")
@@ -184,8 +194,8 @@ Type TTiledMap
 			Local tilesetNode:TxmlNode = tileSetRoot.findElement("image")
 			If tilesetNode Then
 				Local tilesetImageFilename:String = directory + "/" + tilesetNode.GetAttribute("source")
-				tileset.image = LoadImage(tilesetImageFilename)
-										
+				tileset.image = TImage.Load(tilesetImageFilename)	
+								
 				' get dimension of the tileset and calculate x & y-position of each tile
 				Local tsWidth:Int = tilesetNode.GetAttribute("width").ToInt()
 				Local tsHeight:Int = tilesetNode.GetAttribute("height").ToInt()				
@@ -197,7 +207,7 @@ Type TTiledMap
 	EndMethod	
 	
 	Method FindTileLayerByName:TTileLayer(name:String)
-		local retLayer:TTileLayer = Null
+		Local retLayer:TTileLayer = Null
 
 		For Local layer:TTileLayer = EachIn layerList
 			If layer.name = name Then
@@ -206,7 +216,7 @@ Type TTiledMap
 			EndIf
 		Next
 
-		return retLayer
+		Return retLayer
 	EndMethod
 
 	' calculate position of each tile in the tileset
@@ -225,7 +235,9 @@ Type TTiledMap
 		Next		
 	EndMethod
 			
-	Function Create:TTiledMap()
-		Return New TTiledMap
+	Function Create:TTiledMap(_width:Int, _height:Int)
+		Local t:TTiledMap = New TTiledMap
+		t.Init(_width, _height)
+		Return t
 	EndFunction
 EndType

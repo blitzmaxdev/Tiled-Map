@@ -13,13 +13,13 @@ Type TScreen
 	
 	Method Init(width:Int, height:Int)
 		Graphics DesktopWidth(), DesktopHeight(), DesktopDepth(), DesktopHertz()	
-		AutoImageFlags MASKEDIMAGE
+		'AutoImageFlags MASKEDIMAGE
 		Self.width = width
 		Self.height = height	
 		scale = DesktopHeight() / height		
 		posX = (DesktopWidth() - (width * scale)) / 2
 		posY = (DesktopHeight() - (height * scale)) / 2
-		SetViewport(posX, posY, Int(width * scale), Int(height * scale))
+		'SetViewport(posX, posY, Int(width * scale), Int(height * scale))
 	EndMethod
 	
 	Method Clear()
